@@ -1,0 +1,1709 @@
+openapi: 3.0.0
+info:
+  title: Distributed Assessment Platform API
+  version: 1.0.0
+  description: |
+    Scalable distributed assessment platform with automated notifications, reporting, and data export capabilities.
+    
+    ## Features
+    - Role-based access control (Admin/Student)
+    - Hierarchical content organization (Subject→Chapter→Quiz→Question)
+    - Real-time quiz attempts with automatic scoring
+    - Automated background jobs for daily reminders and monthly reports
+    - Data export capabilities with CSV generation
+    
+    ## Authentication
+    All endpoints require JWT Bearer token authentication except for login and registration.
+    
+  contact:
+    name: Distributed Assessment Platform Support
+    email: support@assessmentplatform.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.assessmentplatform.com
+    description: Production server
+
+tags:
+  - name: Admin - Subject
+    description: Admin Subject Management
+  - name: Admin - Chapter
+    description: Admin Chapter Management
+  - name: Admin - Question
+    description: Admin Question Management
+  - name: Admin - Quiz
+    description: Admin Quiz Management
+  - name: Admin - Dashboard
+    description: Admin Dashboard & Analytics
+  - name: Admin - Settings
+    description: Admin System Settings
+  - name: Admin - Notifications
+    description: Admin Notification Management
+  - name: Admin - Reports
+    description: Admin Report & Export Management
+  - name: Auth
+    description: Authentication and User Profile
+  - name: User - Quiz Registration
+    description: User Quiz Registration Management
+  - name: User - Settings
+    description: User Preference Settings
+  - name: User - Export
+    description: User Data Export
+
+paths:
+  # Admin - Subject Management
+  /admin/subject:
+    get:
+      tags: [Admin - Subject]
+      summary: Get all subjects
+      description: Retrieve a list of all subjects in the system
+      responses:
+        '200':
+          description: List of subjects retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+    post:
+      tags: [Admin - Subject]
+      summary: Create a new subject
+      description: Create a new subject in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectRequest'
+            example:
+              name: Mathematics
+              description: Math subject
+      responses:
+        '201':
+          description: Subject created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/subject/{subject_id}:
+    get:
+      tags: [Admin - Subject]
+      summary: Get subject by ID
+      description: Retrieve a specific subject by its ID
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the subject to retrieve
+      responses:
+        '200':
+          description: Subject details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Admin - Subject]
+      summary: Update subject
+      description: Update an existing subject
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubjectRequest'
+            example:
+              name: Mathematics
+              description: Updated description
+      responses:
+        '200':
+          description: Subject updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      tags: [Admin - Subject]
+      summary: Delete subject
+      description: Delete a subject from the system
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Subject deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/subject/search:
+    get:
+      tags: [Admin - Subject]
+      summary: Search subjects
+      description: Search for subjects by name or description
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+          description: Search text (minimum 3 characters)
+      responses:
+        '200':
+          description: Subject search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectListResponse'
+
+  # Admin - Chapter Management
+  /admin/chapter:
+    get:
+      tags: [Admin - Chapter]
+      summary: Get all chapters
+      description: Retrieve a list of all chapters in the system
+      responses:
+        '200':
+          description: List of chapters retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterListResponse'
+    post:
+      tags: [Admin - Chapter]
+      summary: Create a new chapter
+      description: Create a new chapter under a subject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterRequest'
+            example:
+              subject_id: 1
+              name: Algebra
+              description: Algebraic concepts
+      responses:
+        '201':
+          description: Chapter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterResponse'
+
+  /admin/chapter/{chapter_id}:
+    get:
+      tags: [Admin - Chapter]
+      summary: Get chapter by ID
+      parameters:
+        - name: chapter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Chapter details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterResponse'
+    put:
+      tags: [Admin - Chapter]
+      summary: Update chapter
+      parameters:
+        - name: chapter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterRequest'
+      responses:
+        '200':
+          description: Chapter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterResponse'
+    delete:
+      tags: [Admin - Chapter]
+      summary: Delete chapter
+      parameters:
+        - name: chapter_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Chapter deleted successfully
+
+  /admin/chapter/search:
+    get:
+      tags: [Admin - Chapter]
+      summary: Search chapters
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+      responses:
+        '200':
+          description: Chapter search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterListResponse'
+
+  # Admin - Quiz Management
+  /admin/quiz:
+    get:
+      tags: [Admin - Quiz]
+      summary: Get all quizzes
+      responses:
+        '200':
+          description: List of quizzes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizListResponse'
+    post:
+      tags: [Admin - Quiz]
+      summary: Create a new quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizRequest'
+            example:
+              chapter_id: 1
+              name: Quiz 1
+              description: First quiz
+              start_date: "01-06-2025"
+              end_date: "02-06-2025"
+              duration: 30
+      responses:
+        '201':
+          description: Quiz created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+
+  /admin/quiz/{quiz_id}:
+    get:
+      tags: [Admin - Quiz]
+      summary: Get quiz by ID
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Quiz details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+    put:
+      tags: [Admin - Quiz]
+      summary: Update quiz
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizRequest'
+      responses:
+        '200':
+          description: Quiz updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+    delete:
+      tags: [Admin - Quiz]
+      summary: Delete quiz
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Quiz deleted successfully
+
+  /admin/quiz/{quiz_id}/question:
+    get:
+      tags: [Admin - Quiz]
+      summary: Get all questions for a specific quiz
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of questions for quiz
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionListResponse'
+
+  /admin/quiz/search:
+    get:
+      tags: [Admin - Quiz]
+      summary: Search quizzes
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+      responses:
+        '200':
+          description: Quiz search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizListResponse'
+
+  # Admin - Question Management
+  /admin/question:
+    get:
+      tags: [Admin - Question]
+      summary: Get all questions
+      responses:
+        '200':
+          description: List of questions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionListResponse'
+    post:
+      tags: [Admin - Question]
+      summary: Create a new question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionRequest'
+            example:
+              quiz_id: 1
+              question: What is 2+2?
+              option1: "3"
+              option2: "4"
+              option3: "5"
+              option4: "6"
+              answer: 2
+              marks: 1
+      responses:
+        '201':
+          description: Question created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionResponse'
+
+  /admin/question/{question_id}:
+    get:
+      tags: [Admin - Question]
+      summary: Get question by ID
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Question details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionResponse'
+    put:
+      tags: [Admin - Question]
+      summary: Update question
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionRequest'
+      responses:
+        '200':
+          description: Question updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionResponse'
+    delete:
+      tags: [Admin - Question]
+      summary: Delete question
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Question deleted successfully
+
+  /admin/question/search:
+    get:
+      tags: [Admin - Question]
+      summary: Search questions
+      parameters:
+        - name: text
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+      responses:
+        '200':
+          description: Question search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionListResponse'
+
+  # Admin - Dashboard
+  /admin/dashboard:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get dashboard stats
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+
+  /admin/dashboard/stats:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get detailed dashboard statistics
+      responses:
+        '200':
+          description: Detailed dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedStats'
+
+  /admin/dashboard/chart-data:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get chart data for dashboard analytics
+      responses:
+        '200':
+          description: Chart data for various analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartData'
+
+  /admin/dashboard/recent-activity:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get recent user activity logs
+      responses:
+        '200':
+          description: Recent activity data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityLogs'
+
+  /admin/dashboard/system-logs:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get system logs for monitoring
+      responses:
+        '200':
+          description: System logs data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemLogs'
+
+  /admin/dashboard/reminder-logs:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get reminder logs for last 24 hours
+      responses:
+        '200':
+          description: Reminder logs with statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderLogs'
+
+  /admin/dashboard/report-history:
+    get:
+      tags: [Admin - Dashboard]
+      summary: Get report history for current month
+      responses:
+        '200':
+          description: Report history with statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportHistory'
+
+  # Authentication
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      description: Authenticate user and return JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@assessmentplatform.com
+              password: yourpassword
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: User registration
+      description: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              fullname: Jitendra Kumar
+              email: jitendra.in@gmail.com
+              password: Jitendra@123
+              confirm_password: Jitendra@123
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /auth/profile:
+    get:
+      tags: [Auth]
+      summary: Get user profile
+      responses:
+        '200':
+          description: Profile data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    put:
+      tags: [Auth]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      summary: Get all users (admin only)
+      responses:
+        '200':
+          description: List of all users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+
+  /auth/user/{user_id}/status:
+    put:
+      tags: [Auth]
+      summary: Update user status (admin only)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, inactive, suspended]
+            example:
+              status: active
+      responses:
+        '200':
+          description: User status updated successfully
+
+  # User Quiz Registration
+  /user/quiz/ongoing-unregistered:
+    get:
+      tags: [User - Quiz Registration]
+      summary: Get all ongoing quizzes the user has not registered for
+      responses:
+        '200':
+          description: Ongoing unregistered quizzes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizListResponse'
+
+  /user/quiz/upcoming-unregistered:
+    get:
+      tags: [User - Quiz Registration]
+      summary: Get all upcoming quizzes the user has not registered for
+      responses:
+        '200':
+          description: Upcoming unregistered quizzes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizListResponse'
+
+  /user/quiz/register:
+    post:
+      tags: [User - Quiz Registration]
+      summary: Register the user for a quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quiz_id:
+                  type: integer
+              required:
+                - quiz_id
+            example:
+              quiz_id: 1
+      responses:
+        '201':
+          description: Registered for quiz successfully
+        '400':
+          description: Already registered or quiz_id missing
+
+  /user/quiz/registered-unattempted:
+    get:
+      tags: [User - Quiz Registration]
+      summary: Get all quizzes the user is registered for but has not attempted yet
+      responses:
+        '200':
+          description: Registered but unattempted quizzes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizListResponse'
+
+  /user/quiz/attempt:
+    post:
+      tags: [User - Quiz Registration]
+      summary: Get quiz attempt data (POST)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quiz_id:
+                  type: integer
+              required:
+                - quiz_id
+            example:
+              quiz_id: 1
+      responses:
+        '200':
+          description: Quiz attempt data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizAttemptData'
+
+  /user/quiz/submit:
+    post:
+      tags: [User - Quiz Registration]
+      summary: Submit quiz answers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quiz_id:
+                  type: integer
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: integer
+              required:
+                - quiz_id
+                - answers
+            example:
+              quiz_id: 1
+              answers:
+                "1": 2
+                "2": 3
+      responses:
+        '200':
+          description: Quiz submitted successfully
+
+  # User Settings
+  /user/settings:
+    get:
+      tags: [User - Settings]
+      summary: Get user notification preferences
+      responses:
+        '200':
+          description: User notification settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSettings'
+    put:
+      tags: [User - Settings]
+      summary: Update user notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettingsUpdate'
+            example:
+              receive_daily: true
+              receive_monthly: true
+              reminder_time: "09:00"
+      responses:
+        '200':
+          description: Settings updated successfully
+
+  # User Export
+  /user/export/trigger-csv-export:
+    post:
+      tags: [User - Export]
+      summary: Trigger CSV export for current user
+      responses:
+        '200':
+          description: CSV export initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+
+  /user/export/export-status/{export_id}:
+    get:
+      tags: [User - Export]
+      summary: Get status of CSV export
+      parameters:
+        - name: export_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Export status and details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportStatus'
+
+  /user/export/my-exports:
+    get:
+      tags: [User - Export]
+      summary: Get user's CSV export history
+      responses:
+        '200':
+          description: List of user's CSV exports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportHistoryResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login endpoint
+
+  schemas:
+    # Subject Schemas
+    SubjectRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 512
+        description:
+          type: string
+          maxLength: 1024
+
+    SubjectResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SubjectListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubjectResponse'
+
+    # Chapter Schemas
+    ChapterRequest:
+      type: object
+      required:
+        - name
+        - subject_id
+      properties:
+        name:
+          type: string
+          maxLength: 512
+        subject_id:
+          type: integer
+        description:
+          type: string
+          maxLength: 1024
+
+    ChapterResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        subject_id:
+          type: integer
+        subject_name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChapterListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChapterResponse'
+
+    # Quiz Schemas
+    QuizRequest:
+      type: object
+      required:
+        - name
+        - chapter_id
+        - start_date
+        - end_date
+        - duration
+      properties:
+        name:
+          type: string
+          maxLength: 512
+        chapter_id:
+          type: integer
+        description:
+          type: string
+          maxLength: 1024
+        start_date:
+          type: string
+          format: date
+          pattern: '^\d{2}-\d{2}-\d{4}$'
+          example: "01-06-2025"
+        end_date:
+          type: string
+          format: date
+          pattern: '^\d{2}-\d{2}-\d{4}$'
+          example: "02-06-2025"
+        duration:
+          type: integer
+          minimum: 1
+          description: Duration in minutes
+
+    QuizResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        chapter_id:
+          type: integer
+        chapter_name:
+          type: string
+        subject_id:
+          type: integer
+        subject_name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        duration:
+          type: integer
+        status:
+          type: string
+          enum: [upcoming, ongoing, completed, cancelled]
+        questions:
+          type: integer
+          description: Number of questions in the quiz
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    QuizListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuizResponse'
+
+    # Question Schemas
+    QuestionRequest:
+      type: object
+      required:
+        - quiz_id
+        - question
+        - option1
+        - option2
+        - option3
+        - option4
+        - answer
+        - marks
+      properties:
+        quiz_id:
+          type: integer
+        question:
+          type: string
+          maxLength: 4096
+        option1:
+          type: string
+          maxLength: 4096
+        option2:
+          type: string
+          maxLength: 4096
+        option3:
+          type: string
+          maxLength: 4096
+        option4:
+          type: string
+          maxLength: 4096
+        answer:
+          type: integer
+          minimum: 1
+          maximum: 4
+          description: Correct answer option number (1-4)
+        marks:
+          type: integer
+          minimum: 1
+          description: Points awarded for correct answer
+
+    QuestionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        quiz_id:
+          type: integer
+        quiz_name:
+          type: string
+        chapter_id:
+          type: integer
+        chapter_name:
+          type: string
+        subject_id:
+          type: integer
+        subject_name:
+          type: string
+        question:
+          type: string
+        option1:
+          type: string
+        option2:
+          type: string
+        option3:
+          type: string
+        option4:
+          type: string
+        answer:
+          type: integer
+        marks:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    QuestionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionResponse'
+
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 120
+        password:
+          type: string
+          minLength: 6
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+            user:
+              $ref: '#/components/schemas/UserInfo'
+
+    RegisterRequest:
+      type: object
+      required:
+        - fullname
+        - email
+        - password
+        - confirm_password
+      properties:
+        fullname:
+          type: string
+          maxLength: 80
+        email:
+          type: string
+          format: email
+          maxLength: 120
+        password:
+          type: string
+          minLength: 6
+        confirm_password:
+          type: string
+          minLength: 6
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            email:
+              type: string
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullname:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, student]
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+        last_login:
+          type: string
+          format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullname:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        profile_picture:
+          type: string
+        phone_number:
+          type: string
+        date_of_birth:
+          type: string
+          format: date
+        qualification:
+          type: string
+        subject:
+          type: string
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        fullname:
+          type: string
+          maxLength: 80
+        profile_picture:
+          type: string
+        phone_number:
+          type: string
+          maxLength: 15
+        date_of_birth:
+          type: string
+          format: date
+        qualification:
+          type: string
+          maxLength: 512
+        subject:
+          type: string
+          maxLength: 512
+
+    UserListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserInfo'
+
+    # Dashboard Schemas
+    DashboardStats:
+      type: object
+      properties:
+        total_users:
+          type: integer
+        total_subjects:
+          type: integer
+        total_chapters:
+          type: integer
+        total_quizzes:
+          type: integer
+        total_questions:
+          type: integer
+        active_users:
+          type: integer
+        recent_registrations:
+          type: integer
+
+    DetailedStats:
+      type: object
+      properties:
+        users:
+          type: object
+          properties:
+            total:
+              type: integer
+            active:
+              type: integer
+            inactive:
+              type: integer
+        quizzes:
+          type: object
+          properties:
+            total:
+              type: integer
+            upcoming:
+              type: integer
+            ongoing:
+              type: integer
+            completed:
+              type: integer
+
+    ChartData:
+      type: object
+      properties:
+        quiz_completion_rate:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              completion_rate:
+                type: number
+        user_activity:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              active_users:
+                type: integer
+
+    ActivityLogs:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              user:
+                type: string
+              action:
+                type: string
+              details:
+                type: string
+
+    SystemLogs:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              level:
+                type: string
+                enum: [INFO, WARNING, ERROR]
+              message:
+                type: string
+
+    ReminderLogs:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total_sent:
+              type: integer
+            logs:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  user_id:
+                    type: integer
+                  sent_at:
+                    type: string
+                    format: date-time
+                  channel:
+                    type: string
+                  status:
+                    type: string
+
+    ReportHistory:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total_reports:
+              type: integer
+            reports:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  user_id:
+                    type: integer
+                  report_type:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+
+    # User Settings Schemas
+    UserSettings:
+      type: object
+      properties:
+        receive_daily:
+          type: boolean
+        receive_monthly:
+          type: boolean
+        reminder_time:
+          type: string
+          format: time
+          example: "09:00"
+        reminder_channel:
+          type: string
+          enum: [email, sms]
+        report_format:
+          type: string
+          enum: [html, pdf]
+
+    UserSettingsUpdate:
+      type: object
+      properties:
+        receive_daily:
+          type: boolean
+        receive_monthly:
+          type: boolean
+        reminder_time:
+          type: string
+          format: time
+        reminder_channel:
+          type: string
+          enum: [email, sms]
+        report_format:
+          type: string
+          enum: [html, pdf]
+
+    # Export Schemas
+    ExportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            export_id:
+              type: integer
+            task_id:
+              type: string
+            status:
+              type: string
+              enum: [pending, processing, completed, failed]
+
+    ExportStatus:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            export_id:
+              type: integer
+            status:
+              type: string
+              enum: [pending, processing, completed, failed]
+            filename:
+              type: string
+            file_path:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+            error_message:
+              type: string
+
+    ExportHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              report_type:
+                type: string
+              status:
+                type: string
+              filename:
+                type: string
+              created_at:
+                type: string
+                format: date-time
+
+    QuizAttemptData:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                pic:
+                  type: string
+            quiz:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                duration:
+                  type: integer
+                total_marks:
+                  type: integer
+                chapter_name:
+                  type: string
+                subject_name:
+                  type: string
+            questions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  text:
+                    type: string
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        text:
+                          type: string
+            answers:
+              type: object
+              additionalProperties:
+                type: integer
+            time_left:
+              type: integer
+              description: Remaining time in seconds
+
+    # Error Schemas
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error_message:
+          type: string
+        code:
+          type: integer
+
+  responses:
+    BadRequestError:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error_message: "Invalid input data"
+            code: 400
+
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error_message: "Authentication required"
+            code: 401
+
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error_message: "Insufficient permissions"
+            code: 403
+
+    NotFoundError:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            success: false
+            error_message: "Resource not found"
+            code: 404
+
+security:
+  - BearerAuth: []
