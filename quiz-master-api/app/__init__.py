@@ -31,7 +31,7 @@ def create_admin_user():
         print("Admin user created successfully!")
 
 def create_student_user():
-    student = User.create_student(db.session, email="23f1000704@ds.study.iitm.ac.in", fullname="Jitendra Kumar", password="aaaaaaaa")
+    student = User.create_student(db.session, email="21f1000185@ds.study.iitm.ac.in", fullname="Subhadra Bansal", password="aaaaaaaa")
     if student:
         print("Student user created successfully!")
 
